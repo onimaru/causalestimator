@@ -1,0 +1,4 @@
+dowhy==0.6
+pandas==0.25.3
+scikit-learn==0.23.2
+streamlit==0.83.0
