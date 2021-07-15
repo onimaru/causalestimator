@@ -121,15 +121,13 @@ Placebo - Se as suposições estiverem corretas o novo valor deve ser próximo d
         return self.summary
 
 st.sidebar.markdown("http://dagitty.net/dags.html")
-dag = st.sidebar.text_area("Grafo",height=500,value="digraph {\n\n}")
-default_params = """
-{'treatment': 'treatment',
+dag = st.sidebar.text_area("Grafo",height=700,value="digraph {\n\n}")
+default_params = """{'treatment': 'treatment',
           'outcome': 'outcome',
           'common_causes': ['feature_1, feature_2'],
           'effect_modifiers': [],
-          'instruments': []}
-"""
-params = st.text_area('Params',height=200,value=default_params)
+          'instruments': []}"""
+params = st.text_area('Params',height=180,value=default_params)
 params = eval(params)
 params["dag"] = dag
 data_file = st.file_uploader('Dataset')
