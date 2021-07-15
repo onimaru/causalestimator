@@ -1,7 +1,7 @@
 name: app
 dependencies:
   - python=3.8
-  - dowhy=0.9.2
+  - dowhy=0.6
   - scikit-learn=0.23.2
   - pandas=0.25.3
   - streamlit=0.83.*
