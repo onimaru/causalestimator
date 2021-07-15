@@ -1,0 +1,2 @@
+dowhy==0.6.*
+streamlit==0.83.0
