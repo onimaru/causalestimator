@@ -120,7 +120,7 @@ Placebo - Se as suposições estiverem corretas o novo valor deve ser próximo d
         self.results_summary()
         return self.summary
 
-
+st.sidebar.markdown("http://dagitty.net/dags.html")
 dag = st.sidebar.text_area("Grafo",height=500,value="digraph {\n\n}")
 default_params = """
 {'treatment': 'treatment',
