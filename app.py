@@ -1,7 +1,13 @@
 import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
+import numpy as np
+from time import time
+
+import dowhy
 from dowhy import CausalModel
+
+st.set_page_config(layout="wide")
 
 # Avoid printing dataconversion warnings from sklearn
 import warnings
@@ -95,17 +101,11 @@ class InferCausalModel:
 | {self.estimate.value:.3g} | {self.estimate_atc.value:.3g} | {self.estimate_att.value:.3g}|
 
 **Explicações**:  
-**ATE** - Aumentando o tratamento da variável `{self.treatment}` de 0 para 1  
-causa um aumento de **{self.estimate.value:.3g}** no valor esperado do resultado  
-`{self.outcome}`, sobre a população representada no dataset
+**ATE** - Aumentando o tratamento da variável `{self.treatment}` de 0 para 1 causa um aumento de **{self.estimate.value:.3g}** no valor esperado do resultado `{self.outcome}`, sobre a população representada no dataset.
 
-**ATC** - Aumentando o tratamento da variável `{self.treatment}` de 0 para 1  
-causa um aumento de **{self.estimate_atc.value:.3g}** no valor esperado do resultado  
-`{self.outcome}`, sobre o `grupo de controle`.
+**ATC** - Aumentando o tratamento da variável `{self.treatment}` de 0 para 1 causa um aumento de **{self.estimate_atc.value:.3g}** no valor esperado do resultado `{self.outcome}`, sobre o `grupo de controle`.
 
-**ATT** - Aumentando o tratamento da variável `{self.treatment}` de 0 para 1  
-causa um aumento de **{self.estimate_att.value:.3g}** no valor esperado do resultado  
-`{self.outcome}`, sobre `grupo de tratamento`.
+**ATT** - Aumentando o tratamento da variável `{self.treatment}` de 0 para 1 causa um aumento de **{self.estimate_att.value:.3g}** no valor esperado do resultado `{self.outcome}`, sobre `grupo de tratamento`.
 
 **Refutadores**:  
 Random e Subset - Se as suposições estiverem corretas o novo valor não deve mudar muito.  
@@ -120,20 +120,44 @@ Placebo - Se as suposições estiverem corretas o novo valor deve ser próximo d
         self.results_summary()
         return self.summary
 
-st.sidebar.markdown("http://dagitty.net/dags.html")
-dag = st.sidebar.text_area("Grafo",height=700,value="digraph {\n\n}")
-default_params = """{'treatment': 'treatment',
-          'outcome': 'outcome',
-          'common_causes': ['feature_1, feature_2'],
-          'effect_modifiers': [],
-          'instruments': []}"""
+def show_dataframe(data_file):
+    data_df = pd.read_csv(data_file)
+    st.dataframe(data_df)
+    return True, data_df
+
+my_expander = st.sidebar.beta_expander(label='How to')
+with my_expander:
+    st.markdown("""
+- Construa a dag em http://dagitty.net/dags.html (com os mesmos nome usados no seu dataset)
+- Copie o conteúdo de `Model code` e cole no campo `Grafo`, deixando com o formato abaixo do exemplo
+- No campo `Params` informe:
+  - a variável de tratamento em `treatment`
+  - a variável resultado em `outcome`
+  - as features que são causas comuns em `common_causes`
+  - variáveis modificadoras de efeito em `effect_modifiers`
+  - variáveis instrumentais em `instruments`  
+Obs: cada feature só pode aparecer uma vez em cada um dos campos de `Params`
+    """)
+
+dag = st.sidebar.text_area("Grafo",height=700,value="digraph {\nX -> Y;\nZ1 -> Y;\nZ1 -> X;\nZ2 -> Y;\nZ2 -> X;\n}")
+default_params = """{'treatment': 'X',
+'outcome': 'Y',
+'common_causes': ['Z1','Z2'],
+'effect_modifiers': [],
+'instruments': []}"""
 params = st.text_area('Params',height=180,value=default_params)
 params = eval(params)
 params["dag"] = dag
 data_file = st.file_uploader('Dataset')
+showed_df = False
+if st.button("Show dataframe"):
+    showed_df, data_df = show_dataframe(data_file)
 
 if st.button('Run analysis'):
-    data_df = pd.read_csv(data_file)
+    begin = time()
+    if showed_df == False:
+        data_df = pd.read_csv(data_file)
     causal_model = InferCausalModel(data_df,params)
     causal_model.compute_estimates_and_refuters()
+    st.markdown(f"**Tempo de execução**: {(time()-begin)/60:.2} min.")
     st.markdown(causal_model.show_summary())
