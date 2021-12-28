@@ -124,7 +124,7 @@ def show_dataframe(data_file):
     st.dataframe(data_df)
     return True, data_df
 
-my_expander = st.sidebar.expander(label='How to')
+my_expander = st.sidebar.beta_expander(label='How to')
 with my_expander:
     st.markdown("""
 - Construa a dag em http://dagitty.net/dags.html (com os mesmos nome usados no seu dataset)
